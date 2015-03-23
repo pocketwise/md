@@ -8,6 +8,8 @@ var Job = require('./job.js');
 var port = process.env.PORT || 8000;
 var app = express();
 
+// Setup MongoDB to store job results
+mongoose.connect('mongodb://heroku_app35071179:jj9hjgikl4k7oueoua3ckrakga@ds031661.mongolab.com:31661/heroku_app35071179');
 
 // Setup Job Queue
 var kue = require('kue');
@@ -20,12 +22,9 @@ var jobs = kue.createQueue({
     }
 });
 
-// Setup MongoDB to store job results
-mongoose.connect('mongodb://heroku_app35071179:jj9hjgikl4k7oueoua3ckrakga@ds031661.mongolab.com:31661/heroku_app35071179');
-
 // Task: get ticker response from Google Finance
 var lookup = function(job, done) {
-    var ticker = job.data.ticker;
+    var ticker = job.data;
     if(!(ticker)) {
         return done(new Error('invalid ticker'));
     } else {
@@ -52,13 +51,40 @@ var lookup = function(job, done) {
     }
 };
 
+// process all jobs
 jobs.process('ticker', function(job, done){
-    console.log('job id: ', job.id);
     lookup(job, done); 
 });
 
-app.use(kue.app);
+// expose api
+app.use('/api', kue.app);
 
-var server = app.listen(port, function () {      
+// view results
+app.get('/view/:id', function(req, res){
+    Job.findOne({id: req.params.id}, function(err, callback){
+       if (err) {
+           res.send(err);
+       } else {
+           res.send(JSON.stringify(callback));
+       }
+    });
+});
+
+// main UI
+app.get('/', function(req, res){
+    var html = '<h1>Job Queue with NodeJS</h1><h3>Job: Lookup ticker from google finance</h3>' +
+        '<form method="post" action="/api/job">' +
+        ' <input name="type" type="hidden" value="ticker" value="ticker"/>' +
+        ' Enter ticker: <input name="data" type="text" value="GOOG" size="10" />' +
+        ' <input type="submit" value="Add Job" />' +
+        '</form>' + 
+        '<h3>Useful Links</h3><p><a href="/api/stats">Stats</a></p>' +
+        '<p>View job status: http://massdrop.herokuapp.com/api/job/[job id]</p>' + 
+        '<p>View job result: http://massdrop.herokuapp.com/view/[job id]</p>';
+    res.send(html); 
+});
+
+
+app.listen(port, function () {      
     console.log('Job queue listening on: ', port);
 });
