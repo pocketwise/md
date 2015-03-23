@@ -5,8 +5,7 @@
   "author": "calvin",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "job": "node job.js"
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
