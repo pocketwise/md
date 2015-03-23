@@ -1,0 +1,20 @@
+{
+  "name": "md",
+  "version": "0.1.0",
+  "description": "Massdrop Job Q Challenge",
+  "author": "calvin",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "job": "node job.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/pocketwise/md.git"
+  },
+  "dependencies": {
+    "express": "^4.3.0",
+    "kue": "~0.8.11",
+    "mongoose": "~3.8.8"
+  }
+}
